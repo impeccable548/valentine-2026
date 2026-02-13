@@ -3,13 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { downloadCalendarInvite } from './utils/calendar';
 
-// 1. Floating Hearts Background Component
 const FloatingHearts = () => {
   const [hearts, setHearts] = useState([]);
   useEffect(() => {
     const interval = setInterval(() => {
       setHearts((prev) => [...prev, { id: Date.now(), x: Math.random() * 100 }]);
-      if (prev => prev.length > 20) prev.shift();
     }, 600);
     return () => clearInterval(interval);
   }, []);
@@ -17,7 +15,7 @@ const FloatingHearts = () => {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
       <AnimatePresence>
-        {hearts.map((heart) => (
+        {hearts.slice(-15).map((heart) => (
           <motion.div
             key={heart.id}
             initial={{ y: '110vh', x: `${heart.x}vw`, opacity: 1, scale: 0 }}
@@ -35,20 +33,28 @@ const FloatingHearts = () => {
 };
 
 const ValentineApp = () => {
-  const [step, setStep] = useState('landing'); 
+  const [step, setStep] = useState('landing'); // landing, rizz, question, celebration
+  const [rizzIndex, setRizzIndex] = useState(0);
   const [noButtonPos, setNoButtonPos] = useState({ x: 0, y: 0 });
   const [noCount, setNoCount] = useState(0);
   const [yesScale, setYesScale] = useState(1);
-  const [reasonIndex, setReasonIndex] = useState(0);
 
-  const reasons = [
-    "You're the best!",
-    "My favorite person ✨",
-    "You're beautiful!",
-    "I'll be so sad... 🥺",
-    "Think of the memories!",
-    "I'll buy you snacks! 🍟"
+  const rizzLines = [
+    { text: "Are you a camera? Because every time I look at you, I smile.", icon: "📸" },
+    { text: "I’m learning about important dates in history. Want to be one of them?", icon: "📖" },
+    { text: "Do you have a map? I keep getting lost in your eyes.", icon: "🗺️" },
+    { text: "If I were a cat, I'd spend all 9 lives with you.", icon: "🐾" },
+    { text: "Aside from being gorgeous, what do you do for a living?", icon: "✨" },
+    { text: "You must be made of Copper and Tellurium... because you're CuTe.", icon: "🧪" }
   ];
+
+  const handleNextRizz = () => {
+    if (rizzIndex < rizzLines.length - 1) {
+      setRizzIndex(prev => prev + 1);
+    } else {
+      setStep('question');
+    }
+  };
 
   const handleYes = () => {
     setStep('celebration');
@@ -65,11 +71,8 @@ const ValentineApp = () => {
     const y = Math.random() * 250 - 125;
     setNoButtonPos({ x, y });
     setNoCount(prev => prev + 1);
-    setYesScale(prev => prev + 0.25); // Make Yes bigger every time
-    setReasonIndex(prev => (prev + 1) % reasons.length);
+    setYesScale(prev => prev + 0.2);
   };
-
-  const phrases = ["No", "Rude.", "Wait...", "Look left!", "Try again!", "You can't catch me! 💨"];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#fff1f2] via-[#ffe4e6] to-[#fecdd3] flex items-center justify-center p-4 font-modern overflow-hidden relative">
@@ -77,7 +80,7 @@ const ValentineApp = () => {
 
       <AnimatePresence mode="wait">
         
-        {/* LANDING SCREEN */}
+        {/* 1. LANDING */}
         {step === 'landing' && (
           <motion.div 
             key="landing"
@@ -85,62 +88,73 @@ const ValentineApp = () => {
             className="z-10 text-center glass-card p-12 rounded-[3rem]"
           >
             <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="text-6xl mb-6">💌</motion.div>
-            <h1 className="text-5xl font-romantic text-rose-600 mb-6 font-bold">A Message for You</h1>
-            <p className="text-gray-600 mb-8 text-xl max-w-xs mx-auto">I've been waiting for the right moment to ask...</p>
+            <h1 className="text-5xl font-romantic text-rose-600 mb-6 font-bold">Hey, I have a confession...</h1>
             <button 
-              onClick={() => setStep('message')}
-              className="bg-rose-500 hover:bg-rose-600 text-white px-10 py-4 rounded-full transition-all shadow-[0_10px_20px_rgba(244,63,94,0.3)] hover:scale-110 active:scale-95 text-lg font-semibold"
+              onClick={() => setStep('rizz')}
+              className="bg-rose-500 hover:bg-rose-600 text-white px-10 py-4 rounded-full transition-all shadow-lg hover:scale-110 text-lg font-semibold"
             >
-              Open Letter
+              What is it? 
             </button>
           </motion.div>
         )}
 
-        {/* MESSAGE SECTION */}
-        {step === 'message' && (
+        {/* 2. THE RIZZ GALLERY (NEW STEP) */}
+        {step === 'rizz' && (
           <motion.div 
-            key="message"
-            initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.5 }}
-            className="z-10 text-center max-w-md bg-white p-10 rounded-2xl shadow-2xl border-t-[12px] border-rose-400"
+            key="rizz"
+            initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -100 }}
+            className="z-10 text-center max-w-sm w-full glass-card p-10 rounded-3xl border-b-8 border-rose-400"
           >
-            <p className="text-3xl font-romantic text-rose-900 leading-relaxed mb-8">
-              "In a world full of people, my eyes always look for you."
-            </p>
+            <div className="mb-4 text-xs font-bold uppercase tracking-widest text-rose-400">
+              Rizz Level: {Math.round(((rizzIndex + 1) / rizzLines.length) * 100)}%
+            </div>
+            <div className="w-full bg-rose-100 h-2 rounded-full mb-8">
+                <motion.div 
+                    initial={{ width: 0 }} 
+                    animate={{ width: `${((rizzIndex + 1) / rizzLines.length) * 100}%` }}
+                    className="bg-rose-500 h-full rounded-full"
+                />
+            </div>
+            
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={rizzIndex}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="min-h-[150px] flex flex-col justify-center"
+              >
+                <div className="text-5xl mb-4">{rizzLines[rizzIndex].icon}</div>
+                <p className="text-2xl font-romantic text-rose-900 leading-tight">
+                  "{rizzLines[rizzIndex].text}"
+                </p>
+              </motion.div>
+            </AnimatePresence>
+
             <button 
-              onClick={() => setStep('question')}
-              className="text-rose-500 font-bold hover:tracking-widest transition-all duration-300 uppercase text-sm tracking-widest"
+              onClick={handleNextRizz}
+              className="mt-8 bg-white border-2 border-rose-500 text-rose-500 hover:bg-rose-50 px-8 py-2 rounded-full font-bold transition-all"
             >
-              Next Page →
+              {rizzIndex === rizzLines.length - 1 ? "Wait, there's more..." : "Go on..."}
             </button>
           </motion.div>
         )}
 
-        {/* THE BIG QUESTION */}
+        {/* 3. THE BIG QUESTION */}
         {step === 'question' && (
           <motion.div 
             key="question"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="z-10 text-center flex flex-col items-center"
           >
-            <motion.div 
-               animate={{ y: [0, -10, 0] }} 
-               transition={{ repeat: Infinity, duration: 1.5 }}
-               className="text-8xl mb-8"
-            >
-              💍
-            </motion.div>
-            <h2 className="text-6xl font-romantic text-rose-600 mb-4 drop-shadow-sm">Will you be my Valentine?</h2>
+            <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1.5 }} className="text-8xl mb-8">💍</motion.div>
+            <h2 className="text-6xl font-romantic text-rose-600 mb-12">So... Will you be my Valentine?</h2>
             
-            {/* Dynamic reason text that appears as they try to click NO */}
-            <p className="text-rose-400 italic h-6 mb-12 transition-all">{noCount > 0 ? reasons[reasonIndex] : ""}</p>
-
             <div className="flex flex-col md:flex-row items-center justify-center gap-8 min-h-[150px]">
               <motion.button 
                 onClick={handleYes}
                 style={{ scale: yesScale }}
-                whileHover={{ scale: yesScale + 0.1 }}
-                whileTap={{ scale: yesScale - 0.1 }}
-                className="bg-rose-500 text-white px-14 py-5 rounded-2xl font-bold shadow-[0_15px_30px_rgba(244,63,94,0.4)] z-50 text-2xl relative"
+                className="bg-rose-500 text-white px-14 py-5 rounded-2xl font-bold shadow-xl z-50 text-2xl"
               >
                 YES! 💖
               </motion.button>
@@ -149,46 +163,34 @@ const ValentineApp = () => {
                 onMouseEnter={moveNoButton}
                 onClick={moveNoButton}
                 animate={{ x: noButtonPos.x, y: noButtonPos.y }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="bg-white/80 text-gray-500 px-8 py-4 rounded-2xl text-lg shadow-md border border-white backdrop-blur-sm"
+                className="bg-white/80 text-gray-500 px-8 py-4 rounded-2xl text-lg shadow-md border border-white"
               >
-                {phrases[Math.min(noCount, phrases.length - 1)]}
+                {noCount > 5 ? "Fine, I give up" : "No"}
               </motion.button>
             </div>
           </motion.div>
         )}
 
-        {/* CELEBRATION */}
+        {/* 4. CELEBRATION */}
         {step === 'celebration' && (
           <motion.div 
             key="celebration"
             initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }}
             className="z-10 text-center glass-card p-16 rounded-[4rem] border-4 border-white"
           >
-            <motion.div 
-               initial={{ scale: 0 }} animate={{ scale: [1, 1.3, 1] }} 
-               transition={{ repeat: Infinity, duration: 1 }}
-               className="text-9xl mb-8"
-            >
-              💝
-            </motion.div>
-            <h2 className="text-5xl font-romantic text-rose-600 mb-2">It's a Date!</h2>
-            <p className="text-gray-600 text-xl mb-10">You've made me the happiest person in 2026!</p>
-            
+            <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1 }} className="text-9xl mb-8">💝</motion.div>
+            <h2 className="text-5xl font-romantic text-rose-600 mb-2">Maximum Rizz Achieved!</h2>
+            <p className="text-gray-600 text-xl mb-10">See you on the 14th, Valentine.</p>
             <button 
               onClick={downloadCalendarInvite}
-              className="bg-rose-500 hover:bg-rose-600 text-white px-8 py-4 rounded-full font-bold transition-all flex items-center gap-3 mx-auto shadow-lg shadow-rose-200"
+              className="bg-rose-500 hover:bg-rose-600 text-white px-8 py-4 rounded-full font-bold transition-all flex items-center gap-3 mx-auto shadow-lg"
             >
-              📅 Add to Calendar
+              📅 Save our Date
             </button>
           </motion.div>
         )}
 
       </AnimatePresence>
-
-      <footer className="fixed bottom-6 text-rose-400 font-medium tracking-widest text-xs uppercase opacity-70">
-        Design by Impeccable Reform • 2026
-      </footer>
     </div>
   );
 };
